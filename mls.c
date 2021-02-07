@@ -8,6 +8,11 @@
 #define MAX_PATH_SIZE 1024
 // TODO: https://stackoverflow.com/questions/13554150/implementing-the-ls-al-command-in-c
 
+// CITATION: https://timseverien.github.io/binary-cheatsheet/
+#define F_NEW_LINES 1
+#define F_ALL_FILES 2
+#define F_DIR_SLASH 4
+
 #define USAGE  \
     "usage:\n" \
     "    mls [options] [path]\n"\
@@ -28,7 +33,7 @@ int main(int argc, char **argv)
 
     // PARSE FLAGS
     char option_char;
-    int new_lines, include_hidden_files, add_dir_slashes = 0;
+    int flag = 0;
 
     // CITATION: K&R 5.10, p. 117
     while (--argc > 0 && (*++argv)[0] == '-') {
@@ -37,13 +42,13 @@ int main(int argc, char **argv)
             
             switch (option_char) {
                 case '1':
-                    new_lines = 1;
+                    flag |= F_NEW_LINES;
                     break;
                 case 'a':
-                    include_hidden_files = 1;
+                    flag |= F_ALL_FILES;
                     break;
                 case 'p':
-                    add_dir_slashes = 1;
+                    flag |= F_DIR_SLASH;
                     break;
                 case 'h':
                     argc = 0;
@@ -59,6 +64,8 @@ int main(int argc, char **argv)
             }
         }
     }
+
+    fprintf(stdout, "Processed args and flag is set to: %d\n", flag);
     
     // CALL INTO LS
     if (argc == 0) {
@@ -77,7 +84,7 @@ void my_ls(char *file_name)
 
     if (stat(file_name, &file_stats) == -1) {
         fprintf(stderr, "mls:%d\tCannot access file/directory: %s.\n", __LINE__, file_name);
-        return;
+        exit(1);
     }
 
     if ((file_stats.st_mode & S_IFMT) == S_IFDIR)
@@ -95,7 +102,7 @@ void walk_directory(char *directory_name, void (*function_for_files)(char *funct
     // open the directory
     if ((directory = opendir(directory_name)) == NULL) {
         fprintf(stderr, "mls:%d\tCannot access file/directory: %s.\n", __LINE__, directory_name);
-        return;
+        exit(1);
     }
 
     // loop through the files in the directory
