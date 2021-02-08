@@ -28,7 +28,6 @@
 
 
 void my_ls(char *path, int flag);
-void walk_directory(char *directory_name, int flag);
 
 int main(int argc, char **argv)
 {
@@ -40,8 +39,6 @@ int main(int argc, char **argv)
     // CITATION: K&R 5.10, p. 117
     while (--argc > 0 && (*++argv)[0] == '-') {
         while ((option_char = *++argv[0])) {
-            fprintf(stdout, "Processing option %c\n", option_char);
-            
             switch (option_char) {
                 case '1':
                     flag |= F_NEW_LINES;
@@ -70,8 +67,6 @@ int main(int argc, char **argv)
         }
     }
 
-    fprintf(stdout, "Processed args and flag is set to: %d\n", flag);
-    
     // CALL INTO LS
     if (argc == 0) {
         my_ls(".", flag);
@@ -102,22 +97,6 @@ void print(char *path, struct stat *file_stats, int flag)
         printf("\n");
 }
 
-void my_ls(char *path, int flag)
-{
-    struct stat file_stats;
-
-    if (stat(path, &file_stats) == -1) {
-        fprintf(stderr, "mls:%d\tCannot access path: %s.\n", __LINE__, path);
-        exit(1);
-    }
-
-    if ((file_stats.st_mode & S_IFMT) == S_IFDIR) {
-        walk_directory(path, flag);
-    } else {
-        print(path, &file_stats, flag);
-    }
-}
-
 void walk_directory(char *directory_name, int flag)
 {
     DIR *directory;
@@ -146,4 +125,20 @@ void walk_directory(char *directory_name, int flag)
     }
 
     closedir(directory);
+}
+
+void my_ls(char *path, int flag)
+{
+    struct stat file_stats;
+
+    if (stat(path, &file_stats) == -1) {
+        fprintf(stderr, "mls:%d\tCannot access path: %s.\n", __LINE__, path);
+        exit(1);
+    }
+
+    if ((file_stats.st_mode & S_IFMT) == S_IFDIR) {
+        walk_directory(path, flag);
+    } else {
+        print(path, &file_stats, flag);
+    }
 }
